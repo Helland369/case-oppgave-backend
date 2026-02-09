@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace Bacend.Model;
+namespace Backend.Model;
 
-public class name
+public class Event
 {
     [JsonPropertyName("eventId")]
     public string EventId { get; set; } = "";
