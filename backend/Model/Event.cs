@@ -29,7 +29,7 @@ public class Event
     public string Type { get; set; } = "";
 
     [JsonPropertyName("birthdat")]
-    public string Birthdat { get; set; } = "";
+    public string Birthdate { get; set; } = "";
 
     [JsonPropertyName("city")]
     public string City { get; set; } = "";
