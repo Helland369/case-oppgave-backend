@@ -28,7 +28,7 @@ public class Event
     [JsonPropertyName("type")]
     public string Type { get; set; } = "";
 
-    [JsonPropertyName("birthdat")]
+    [JsonPropertyName("birthdate")]
     public string Birthdate { get; set; } = "";
 
     [JsonPropertyName("city")]

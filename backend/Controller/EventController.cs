@@ -9,6 +9,7 @@ namespace Backend.Controller;
 public class EventController : ControllerBase
 {
     private readonly ISqliteConnectionFactory _connection;
+    private readonly UuidGeneratorService _generator = new();
 
     public EventController(ISqliteConnectionFactory connection)
     {
@@ -28,15 +29,22 @@ public class EventController : ControllerBase
                         (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City)";
 
             command.Parameters.AddWithValue("@EventId", events.EventId);
-            command.Parameters.AddWithValue("@OccurredUt", events.OccurredUtc);
+            command.Parameters.AddWithValue("@OccurredUtc", events.OccurredUtc);
             command.Parameters.AddWithValue("@RecordedUtc", events.RecordedUtc);
-            command.Parameters.AddWithValue("@StudentI", events.StudentId);
             command.Parameters.AddWithValue("@Course", events.Course);
             command.Parameters.AddWithValue("@Year", events.Year);
             command.Parameters.AddWithValue("@Semester", events.Semester);
             command.Parameters.AddWithValue("@Type", events.Type);
-            command.Parameters.AddWithValue("@Birthdat", events.Birthdate);
+            command.Parameters.AddWithValue("@Birthdate", events.Birthdate);
             command.Parameters.AddWithValue("@City", events.City);
+
+            if (events.Type == "student_registrert")
+            {
+                events.StudentId = _generator.NewUuid();
+                command.Parameters.AddWithValue("@StudentId", events.StudentId);
+            }
+
+            await command.ExecuteNonQueryAsync();
 
             return Ok();
         }
