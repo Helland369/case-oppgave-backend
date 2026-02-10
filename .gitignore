@@ -2,3 +2,4 @@ bin*
 obj*
 /.vs
 backend/backend.csproj.user
+/backend/case.db

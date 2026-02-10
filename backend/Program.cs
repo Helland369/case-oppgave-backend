@@ -1,5 +1,4 @@
 using Backend.Services;
-using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,13 +17,36 @@ builder.Services.AddSingleton<ISqliteConnectionFactory>(
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var connectionFactory = scope.ServiceProvider.GetRequiredService<ISqliteConnectionFactory>();
+    using var connection = connectionFactory.Create();
+    using var command = connection.CreateCommand();
+
+    command.CommandText = @"
+        CREATE TABLE IF NOT EXISTS Event (
+           EventId TEXT PRIMARY KEY,
+           OccurredUtc TEXT,
+           RecordedUtc TEXT,
+           StudentId TEXT,
+           Course TEXT,
+           Year INTEGER,
+           Semester INTEGER,
+           Type TEXT,
+           Birthdate TEXT,
+           City TEXT
+        )";
+    command.ExecuteNonQuery();
+    Console.WriteLine("DB schema verified/created!");
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-
-app.UseHttpsRedirection();
+app.MapControllers();
+//app.UseHttpsRedirection();
 
 app.Run();

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Backend.Controller;
 
 [ApiController]
-[Route("/events")]
+[Route("events")]
 public class EventController : ControllerBase
 {
     private readonly ISqliteConnectionFactory _connection;
@@ -21,6 +21,12 @@ public class EventController : ControllerBase
     {
         try
         {
+            if (events.Type == "student_registrert")
+            {
+                events.StudentId = _generator.NewUuid();
+            }
+
+            Console.WriteLine("clear if check");
             using var conn = _connection.Create();
             using var command = conn.CreateCommand();
 
@@ -37,21 +43,19 @@ public class EventController : ControllerBase
             command.Parameters.AddWithValue("@Type", events.Type);
             command.Parameters.AddWithValue("@Birthdate", events.Birthdate);
             command.Parameters.AddWithValue("@City", events.City);
+            command.Parameters.AddWithValue("@StudentId", events.StudentId);
+            
+            await command.ExecuteNonQueryAsync();
 
             if (events.Type == "student_registrert")
-            {
-                events.StudentId = _generator.NewUuid();
-                command.Parameters.AddWithValue("@StudentId", events.StudentId);
-            }
-
-            await command.ExecuteNonQueryAsync();
+                return Ok(new { studentId = events.StudentId });
 
             return Ok();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
-            return BadRequest();
+            Console.WriteLine(ex.ToString());
+            return BadRequest(ex.Message);
         }
     }
 }
