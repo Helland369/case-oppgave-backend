@@ -45,10 +45,6 @@ public class EventController : ControllerBase
             using var conn = _connection.Create();
             using var command = conn.CreateCommand();
 
-            // command.CommandText = @"INSERT INTO Event
-            //             (EventId, OccurredUtc, RecordedUtc, StudentId, Course, Year, Semester, Type, Birthdate, City, Name) VALUES
-            //             (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City, @Name)";
-
             command.CommandText = cmd;
 
             command.Parameters.AddWithValue("@EventId", events.EventId);
