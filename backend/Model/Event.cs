@@ -7,15 +7,15 @@ public class Event
     [JsonPropertyName("eventId")]
     public string EventId { get; set; } = "";
 
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
     [JsonPropertyName("occurredUtc")]
     public DateTime OccurredUtc { get; set; }
 
     [JsonPropertyName("recordedUtc")]
     public DateTime RecordedUtc { get; set; }
-
-    [JsonPropertyName("studentId")]
-    public string StudentId { get; set; } = "";
-
+    
     [JsonPropertyName("course")]
     public string Course { get; set; } = "";
 
@@ -33,4 +33,7 @@ public class Event
 
     [JsonPropertyName("city")]
     public string City { get; set; } = "";
+    
+    [JsonPropertyName("studentId")]
+    public string StudentId { get; set; } = "";
 }

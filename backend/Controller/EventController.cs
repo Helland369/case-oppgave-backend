@@ -21,18 +21,35 @@ public class EventController : ControllerBase
     {
         try
         {
+            string cmd = @"INSERT INTO Event";
+            string type = "";
+            string value = "";
+
             if (events.Type == "student_registrert")
             {
                 events.StudentId = _generator.NewUuid();
             }
 
-            Console.WriteLine("clear if check");
+            if (events.Name != "") {
+                type = "(EventId, OccurredUtc, RecordedUtc, StudentId, Course, Year, Semester, Type, Birthdate, City, Name)";
+                value = "VALUES (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City, @Name)";
+            }
+            else
+            {
+                type = "(EventId, OccurredUtc, RecordedUtc, StudentId, Course, Year, Semester, Type, Birthdate, City)";
+                value = "VALUES (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City)";
+            }
+
+            cmd = cmd + type + value;
+
             using var conn = _connection.Create();
             using var command = conn.CreateCommand();
 
-            command.CommandText = @"INSERT INTO Event
-                        (EventId, OccurredUtc, RecordedUtc, StudentId, Course, Year, Semester, Type, Birthdate, City) VALUES
-                        (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City)";
+            // command.CommandText = @"INSERT INTO Event
+            //             (EventId, OccurredUtc, RecordedUtc, StudentId, Course, Year, Semester, Type, Birthdate, City, Name) VALUES
+            //             (@EventId, @OccurredUtc, @RecordedUtc, @StudentId, @Course, @Year, @Semester, @Type, @Birthdate, @City, @Name)";
+
+            command.CommandText = cmd;
 
             command.Parameters.AddWithValue("@EventId", events.EventId);
             command.Parameters.AddWithValue("@OccurredUtc", events.OccurredUtc);
@@ -43,6 +60,7 @@ public class EventController : ControllerBase
             command.Parameters.AddWithValue("@Type", events.Type);
             command.Parameters.AddWithValue("@Birthdate", events.Birthdate);
             command.Parameters.AddWithValue("@City", events.City);
+            command.Parameters.AddWithValue("@Name", events.Name);
             command.Parameters.AddWithValue("@StudentId", events.StudentId);
             
             await command.ExecuteNonQueryAsync();

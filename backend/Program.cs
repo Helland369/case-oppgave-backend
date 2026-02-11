@@ -34,7 +34,8 @@ using (var scope = app.Services.CreateScope())
            Semester INTEGER,
            Type TEXT,
            Birthdate TEXT,
-           City TEXT
+           City TEXT,
+           Name TEXT
         )";
     command.ExecuteNonQuery();
     Console.WriteLine("DB schema verified/created!");

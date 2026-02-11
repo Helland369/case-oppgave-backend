@@ -36,7 +36,7 @@ while IFS= read -r line; do
       exit 1
     fi
 
-    event_with_student=$(echo "$line" | jq \
+    event_with_student=$(echo "$line" | jq -c \
       --arg sid "$current_student_id" \
       '. + {studentId: $sid}')
 
