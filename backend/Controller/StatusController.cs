@@ -1,6 +1,7 @@
-﻿using Backend.Model;
-using Backend.Services;
+﻿using Backend.Services;
+using Backend.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 
 namespace Backend.Controller;
 
@@ -17,62 +18,44 @@ public class StatusController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetStatus([FromQuery] string? studentId = null)
+    public async Task<ActionResult<List<StatusDto>>> GetStatus()
     {
         try
         {
+            List<StatusDto> results = new();
             using var conn = _connection.Create();
-            using var command = conn.CreateCommand();
 
-            if (string.IsNullOrEmpty(studentId))
-            {
-                //query for  All students
-                command.CommandText = @"
-                    SELECT 
-                        StudentId,
-                        Course,
-                        Year,
-                        Semester,
-                        Type as Status,
-                        OccurredUtc,
-                        Birthdate,
-                        City
-                    FROM Event
-                    WHERE (StudentId, Course, Year, Semester, OccurredUtc) IN (
-                        SELECT StudentId, Course, Year, Semester, MAX(OccurredUtc)
-                        FROM Event
-                        GROUP BY StudentId, Course, Year, Semester
-                    )
-                    ORDER BY StudentId, Course, Year, Semester;
-                ";
-            }
-            else
-            {
-                //query for Filtered by studentId
-                command.CommandText = @"
-                    SELECT 
-                        StudentId,
-                        Course,
-                        Year,
-                        Semester,
-                        Type as Status,
-                        OccurredUtc,
-                        Birthdate,
-                        City
-                    FROM Event
-                    WHERE StudentId = @StudentId
-                      AND (StudentId, Course, Year, Semester, OccurredUtc) IN (
-                        SELECT StudentId, Course, Year, Semester, MAX(OccurredUtc)
-                        FROM Event
-                        WHERE StudentId = @StudentId
-                        GROUP BY StudentId, Course, Year, Semester
-                    )
-                    ORDER BY Course, Year, Semester;
-                ";
-                command.Parameters.AddWithValue("@StudentId", studentId);
-            }
+            string query = @"SELECT StudentId, Course, Year, Semester, Type
+                              FROM (
+                                SELECT
+                                  StudentId, Course, Year, Semester, Type,
+                                  ROW_NUMBER() OVER (
+                                    PARTITION BY StudentId, Course, Year, Semester
+                                    ORDER BY OccurredUtc DESC, RecordedUtc DESC, EventId DESC
+                                  ) AS rn
+                                FROM Event
+                                WHERE Course IS NOT NULL AND Course <> ''
+                                  AND Year <> 0
+                                  AND Semester <> 0 
+                              )
+                              WHERE rn = 1
+                              ORDER BY StudentId, Course, Year, Semester;
+                            ";
 
-            return Ok();
+            using var command = new SqliteCommand(query, conn);
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                results.Add(new StatusDto(
+                    reader["StudentId"]?.ToString() ?? "",
+                    reader["Course"]?.ToString() ?? "",
+                    Convert.ToInt32(reader["Year"]),
+                    reader["Semester"]?.ToString() ?? "",
+                    reader["Type"]?.ToString() ?? ""
+                ));
+            }
+            return Ok(results);
         }
         catch (Exception ex)
         {
