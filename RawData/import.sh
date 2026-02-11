@@ -14,14 +14,11 @@ while IFS= read -r line; do
   event_type=$(echo "$line" | jq -r '.type')
 
   if [[ "$event_type" == "student_registrert" ]]; then
-      echo "Registrerer student..."
-
-      clean_json=$(echo "$line" | jq 'del(.studentId)')
+    echo "Registrerer student..."
 
     response=$(curl -s -X POST "$API_URL" \
       -H "Content-Type: application/json" \
-      -d "$clean_json")
-#      -d "$line")
+      -d "$line")
 
     current_student_id=$(echo "$response" | jq -r '.studentId')
 
