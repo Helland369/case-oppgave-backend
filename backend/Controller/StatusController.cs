@@ -1,5 +1,6 @@
 ﻿using Backend.Services;
 using Backend.Dto;
+using Backend.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 
@@ -25,7 +26,7 @@ public class StatusController : ControllerBase
             List<StatusDto> results = new();
             using var conn = _connection.Create();
 
-            string query = @"SELECT StudentId, Course, Year, Semester, Type
+            const string query = @"SELECT StudentId, Course, Year, Semester, Type
                               FROM (
                                 SELECT
                                   StudentId, Course, Year, Semester, Type,
@@ -56,6 +57,45 @@ public class StatusController : ControllerBase
                 ));
             }
             return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return BadRequest();
+        }
+    }
+
+    [HttpGet("{studentId}")]
+    public async Task<ActionResult<List<Event>>> FilterStatus(string studentId)
+    {
+        try
+        {
+            List<Event> result = new();
+            using var conn = _connection.Create();
+            string query = "SELECT * FROM Event WHERE StudentId = @studentId";
+
+            using var command = new SqliteCommand(query, conn);
+            command.Parameters.AddWithValue("@studentId", studentId);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                result.Add(new Event
+                {
+                    StudentId = reader["StudentId"]?.ToString() ?? "",
+                    EventId = reader["EventId"]?.ToString() ?? "",
+                    Name = reader["Name"]?.ToString() ?? "",
+                    OccurredUtc = Convert.ToDateTime(reader["OccurredUtc"]),
+                    RecordedUtc = Convert.ToDateTime(reader["RecordedUtc"]),
+                    Course = reader["Course"]?.ToString() ?? "",
+                    Year = Convert.ToInt32(reader["Year"]),
+                    Semester = Convert.ToInt32(reader["Semester"]),
+                    Type = reader["Type"]?.ToString() ?? "",
+                    Birthdate = reader["Birthdate"]?.ToString() ?? "",
+                    City = reader["City"]?.ToString() ?? "",
+                });
+            }
+            return Ok(result);
         }
         catch (Exception ex)
         {
